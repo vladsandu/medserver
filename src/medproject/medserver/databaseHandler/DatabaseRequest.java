@@ -6,13 +6,15 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import medproject.medlibrary.concurrency.Request;
+import medproject.medserver.netHandler.ClientSession;
+
 public class DatabaseRequest {
 
 	private final PreparedStatement preparedStatement;
+	private final ClientSession clientSession;
 	private final boolean updatingRequest;
-	private final boolean notificationRequest;
-	private int requestStatus;
-	private final int requestType;
+	private final Request request;
 	
 	private final Map<Integer,Integer> intValues = new HashMap<Integer, Integer>();
 	private final Map<Integer,String> stringValues = new HashMap<Integer, String>();
@@ -21,20 +23,15 @@ public class DatabaseRequest {
 	private ResultSet resultSet;
 	private int affectedRows = 0;
 	
-	public DatabaseRequest(PreparedStatement preparedStatement, boolean updatingRequest, boolean notificationRequest, int requestType, int requestStatus) {
+	public DatabaseRequest(ClientSession clientSession, Request request, PreparedStatement preparedStatement, boolean updatingRequest) {
+		this.clientSession = clientSession;
+		this.request = request;
 		this.preparedStatement = preparedStatement;
 		this.updatingRequest = updatingRequest;
-		this.requestStatus = requestStatus;
-		this.notificationRequest = notificationRequest;
-		this.requestType = requestType;
 	}
-
-	public int getRequestStatus() {
-		return requestStatus;
-	}
-
-	public void setRequestStatus(int requestStatus) {
-		this.requestStatus = requestStatus;
+	
+	public Request getRequest() {
+		return request;
 	}
 
 	public boolean isUpdatingRequest() {
@@ -73,12 +70,7 @@ public class DatabaseRequest {
 		return blobValues;
 	}
 
-	public boolean isNotificationRequest() {
-		return notificationRequest;
+	public ClientSession getClientSession() {
+		return clientSession;
 	}
-
-	public int getRequestType() {
-		return requestType;
-	}
-
 }

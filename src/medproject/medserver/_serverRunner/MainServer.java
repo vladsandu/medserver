@@ -16,9 +16,9 @@ public class MainServer {
 	public static void main(String[] args) throws Throwable {
 		LogWriter.useFileLogging();
 		//load configuration from config file
-		DatabaseThread databaseThread = new DatabaseThread("jdbc:oracle:thin:@localhost:1521:xe", "medadmin", "vladvlad");
-		new NetServerThread(new InetSocketAddress("localhost", 1338), databaseThread);
+		NetServerThread netServerThread = new NetServerThread(new InetSocketAddress("localhost", 1338));
 		
+		netServerThread.start();
 	}
 
 	public static HashMap<SelectionKey, ClientSession> getClientMap() {

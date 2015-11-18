@@ -9,30 +9,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import medproject.medserver.netHandler.ChangeRequest;
 
 public class DataWriter{
-
-private ConcurrentHashMap<SocketChannel,ArrayList<Object>> writingQueue = new ConcurrentHashMap<>();
-private List<ChangeRequest> pendingChanges;
+//FIXME: ArrayList vs something concurrent
+	private ConcurrentHashMap<SocketChannel,ArrayList<Object>> writingQueue = new ConcurrentHashMap<>();
+	private List<ChangeRequest> pendingChanges;
 
 	public DataWriter( List<ChangeRequest> pendingStateChanges) {
 		this.pendingChanges = pendingStateChanges; 
 	}
-	
+
 	public void processWriteRequest(SocketChannel channel, Object object) {
 		synchronized(this.writingQueue) {
 			if(writingQueue.containsKey(channel) && writingQueue.get(channel) != null)
 				writingQueue.get(channel).add(object);
 			else{
-			ArrayList<Object> requestList = new ArrayList<Object>();
-			requestList.add(object);
-			
-			writingQueue.put(channel, requestList);
+				ArrayList<Object> requestList = new ArrayList<Object>();
+				requestList.add(object);
+
+				writingQueue.put(channel, requestList);
 			}
 		}
-		
+
 		synchronized(pendingChanges){
 			pendingChanges.add(new ChangeRequest(channel, SelectionKey.OP_WRITE));
 		}
-	  }
+	}
 
 	public ConcurrentHashMap<SocketChannel, ArrayList<Object>> getWritingQueue() {
 		return writingQueue;
