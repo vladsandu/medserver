@@ -6,24 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import medproject.medlibrary.concurrency.Request;
 import medproject.medserver.netHandler.ChangeRequest;
 
 public class DataWriter{
 //FIXME: ArrayList vs something concurrent
-	private ConcurrentHashMap<SocketChannel,ArrayList<Object>> writingQueue = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<SocketChannel,ArrayList<Request>> writingQueue = new ConcurrentHashMap<>();
 	private List<ChangeRequest> pendingChanges;
 
 	public DataWriter( List<ChangeRequest> pendingStateChanges) {
 		this.pendingChanges = pendingStateChanges; 
 	}
 
-	public void processWriteRequest(SocketChannel channel, Object object) {
+	public void processWriteRequest(SocketChannel channel, Request request) {
 		synchronized(this.writingQueue) {
 			if(writingQueue.containsKey(channel) && writingQueue.get(channel) != null)
-				writingQueue.get(channel).add(object);
+				writingQueue.get(channel).add(request);
 			else{
-				ArrayList<Object> requestList = new ArrayList<Object>();
-				requestList.add(object);
+				ArrayList<Request> requestList = new ArrayList<Request>();
+				requestList.add(request);
 
 				writingQueue.put(channel, requestList);
 			}
@@ -34,7 +35,7 @@ public class DataWriter{
 		}
 	}
 
-	public ConcurrentHashMap<SocketChannel, ArrayList<Object>> getWritingQueue() {
+	public ConcurrentHashMap<SocketChannel, ArrayList<Request>> getWritingQueue() {
 		return writingQueue;
 	}
 

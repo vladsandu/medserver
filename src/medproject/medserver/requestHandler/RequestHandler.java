@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.Request;
+import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medserver.dataWriter.DataWriter;
 import medproject.medserver.databaseHandler.DatabaseRequest;
 import medproject.medserver.databaseHandler.DatabaseThread;
@@ -48,7 +49,7 @@ public class RequestHandler implements Runnable{
 
 	public void processRequest(ClientSession client) throws IOException, ClassNotFoundException {
 
-		Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestCodes.REQUEST_SUCCESSFUL);
+		Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestStatus.REQUEST_NEW);
 
 		ByteBuffer clientBuffer = client.getBuffer();
 
@@ -81,11 +82,14 @@ public class RequestHandler implements Runnable{
 			RequestEntry requestEntry = null;
 			try {
 				requestEntry = requestQueue.take();
-				sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
 
-				if(requestEntry.getRequest().getREQUEST_STATUS() != RequestCodes.REQUEST_COMPLETE)
-					requestQueue.offer(requestEntry);
-
+				if(requestEntry.getRequest().isCompleted())
+					dataWriter.processWriteRequest(
+							requestEntry.getClientSession().getChannel(), 
+							requestEntry.getRequest());
+				else
+					sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
+				
 			} catch (InterruptedException e) {
 				LOG.severe("Request Handler thread interrupted");
 			}			  	 
@@ -93,9 +97,11 @@ public class RequestHandler implements Runnable{
 	}
 
 	private void sendRequestToSpecializedHandler(ClientSession client, Request request){
+//send database request
+		//Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestCodes.REQUEST_PENDING);
 
-		Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestCodes.REQUEST_PENDING);
-
+		//request.setStatus(RequestStatus.REQUEST_COMPLETED);
+	
 		//switch(RequestCodes.requestTypeGetter(request)){
 		//}	
 

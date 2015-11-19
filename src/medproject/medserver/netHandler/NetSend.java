@@ -24,7 +24,7 @@ public class NetSend {
 	void send(ClientSession session) throws IOException{
 		
 		synchronized(dataWriter.getWritingQueue()){
-			ConcurrentHashMap<SocketChannel, ArrayList<Object>> pendingData = this.dataWriter.getWritingQueue();
+			ConcurrentHashMap<SocketChannel, ArrayList<Object>> pendingData = dataWriter.getWritingQueue();
 		
 		if(!pendingData.containsKey(session.channel)){
 			session.getSelectionKey().interestOps(SelectionKey.OP_READ);
@@ -71,7 +71,7 @@ public class NetSend {
 	      ch.close();
 	    }
 		
-		System.out.println("Pachet trimis");
+		//System.out.println("Pachet trimis");
 		objectStream.close();
 		
 		if(!pendingData.get(session.getChannel()).isEmpty())

@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
+import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medserver.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
 import medproject.medserver.requestHandler.RequestCodes;
@@ -65,40 +66,51 @@ public class DatabaseThread implements Runnable{
 
 			try {
 				currentRequest = databaseRequests.take();
+				
+				if(currentRequest == null)
+					return;
+				if(currentRequest.getRequest().getStatus() != RequestStatus.REQUEST_PENDING)
+					return;
+				
 				processDatabaseRequest(currentRequest);
 				
+				currentRequest.getRequest().setStatus(RequestStatus.REQUEST_COMPLETED);
 				requestHandler.addCompleteRequest(currentRequest);
 			} catch (InterruptedException e) {
 				LOG.severe("Request Handler thread interrupted" + e.getMessage());
-			} catch (SQLException e) {
-				LOG.severe("Database couldn't process request" + e.getMessage());
 			}
 
 		}
 	}
 
-	private void processDatabaseRequest(DatabaseRequest currentRequest) throws SQLException{
-		PreparedStatement statement = currentRequest.getPreparedStatement(); 	
-		statement.clearParameters();
+	private void processDatabaseRequest(DatabaseRequest currentRequest){
+		try {
+			PreparedStatement statement = currentRequest.getPreparedStatement(); 	
+			statement.clearParameters();
 
-		for(HashMap.Entry<Integer, String> parameter : currentRequest.getStringValues().entrySet()){
-			statement.setString(parameter.getKey(), parameter.getValue());
-		}
-		for(HashMap.Entry<Integer, Integer> parameter : currentRequest.getIntValues().entrySet()){
-			statement.setInt(parameter.getKey(), parameter.getValue());
-		}
-		for(Entry<Integer, Blob> parameter : currentRequest.getBlobValues().entrySet()){
-			statement.setBlob(parameter.getKey(), parameter.getValue());
-		}
+			for(HashMap.Entry<Integer, String> parameter : currentRequest.getStringValues().entrySet()){
+				statement.setString(parameter.getKey(), parameter.getValue());
+			}
+			for(HashMap.Entry<Integer, Integer> parameter : currentRequest.getIntValues().entrySet()){
+				statement.setInt(parameter.getKey(), parameter.getValue());
 
-		if(currentRequest.isUpdatingRequest()){
-			int affectedRows = statement.executeUpdate();
-			currentRequest.setAffectedRows(affectedRows);
+			}
+			for(Entry<Integer, Blob> parameter : currentRequest.getBlobValues().entrySet()){
+				statement.setBlob(parameter.getKey(), parameter.getValue());
+			}
+
+			if(currentRequest.isUpdatingRequest()){
+				int affectedRows = statement.executeUpdate();
+				currentRequest.setAffectedRows(affectedRows);
+			}
+			else{
+				ResultSet results = statement.executeQuery();
+				currentRequest.setResultSet(results);
+			}	
+		} catch (SQLException e) {
+			LOG.severe("Database couldn't process request" + e.getMessage());
+			currentRequest.getRequest().setStatus(RequestStatus.REQUEST_FAILED);
 		}
-		else{
-			ResultSet results = statement.executeQuery();
-			currentRequest.setResultSet(results);
-		}	
 	}
 
 
