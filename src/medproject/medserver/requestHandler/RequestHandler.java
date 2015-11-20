@@ -32,7 +32,7 @@ public class RequestHandler implements Runnable{
 
 	public RequestHandler(DataWriter dataWriter) throws SQLException {
 		this.dataWriter = dataWriter;
-		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521:xe", "medadmin", "vladvlad");
+		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521/pdbmed", "medadmin", "test");
 
 		this.t = new Thread(this);
 	}
@@ -47,11 +47,11 @@ public class RequestHandler implements Runnable{
 		databaseThread.stop();
 	}
 
-	public void processRequest(ClientSession client) throws IOException, ClassNotFoundException {
+	public void processNewRequest(ClientSession client) throws IOException, ClassNotFoundException {
 
-		Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestStatus.REQUEST_NEW);
+		Request currentRequest = null;
 
-		ByteBuffer clientBuffer = client.getBuffer();
+		ByteBuffer clientBuffer = client.getReadBuffer();
 
 		clientBuffer.clear();
 		byte[] packetBytes = new byte[client.getCurrentMessageByteSize()];
@@ -69,7 +69,7 @@ public class RequestHandler implements Runnable{
 		clientBuffer.clear();
 
 		synchronized(this.requestQueue) {
-			if(currentRequest.getREQUEST_CODE() != RequestCodes.EMPTY_REQUEST){
+			if(currentRequest != null){
 				requestQueue.offer(new RequestEntry(currentRequest, client));
 			}
 		}
@@ -85,7 +85,7 @@ public class RequestHandler implements Runnable{
 
 				if(requestEntry.getRequest().isCompleted())
 					dataWriter.processWriteRequest(
-							requestEntry.getClientSession().getChannel(), 
+							requestEntry.getClientSession(), 
 							requestEntry.getRequest());
 				else
 					sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());

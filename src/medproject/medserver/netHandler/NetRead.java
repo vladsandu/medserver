@@ -23,11 +23,11 @@ public class NetRead {
 	public void read(ClientSession client) {
 
 		SocketChannel channel = client.getChannel();
-		ByteBuffer buffer = client.getBuffer();
+		ByteBuffer buffer = client.getReadBuffer();
 
 		try {
 			ReadableByteChannel ch = (ReadableByteChannel)channel;
-
+			//TODO: Do something about bytesTotal;
 			int bytesOp = 0, bytesTotal = 0;
 
 			if(client.isFinishedReading())
@@ -60,7 +60,7 @@ public class NetRead {
 			//System.out.println("Received " + buffer.position() + " bytes");
 
 			if(client.isFinishedReading()){
-				handlerThread.processRequest(client);
+				handlerThread.processNewRequest(client);
 				client.setCurrentMessageByteSize(0);
 			}
 			else{

@@ -69,14 +69,13 @@ public class UtilMethods {
 	}
 
 	public static ClientSession getClientFromAccountID(int accountID){
-		
+		/*
 		for (HashMap.Entry<SelectionKey, ClientSession> entry : MainServer.getClientMap().entrySet())
 		{
-			System.out.println("value: " + entry.getValue().getAccount().getAccountID());
-		    if(entry.getValue().getAccount().getAccountID() == accountID)
+			if(entry.getValue().getAccount().getAccountID() == accountID)
 		    	return entry.getValue();
 		}
-
+*/
 		return null;
 		
 	}

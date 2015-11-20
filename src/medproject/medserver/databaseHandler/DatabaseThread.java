@@ -71,10 +71,8 @@ public class DatabaseThread implements Runnable{
 					return;
 				if(currentRequest.getRequest().getStatus() != RequestStatus.REQUEST_PENDING)
 					return;
-				
+
 				processDatabaseRequest(currentRequest);
-				
-				currentRequest.getRequest().setStatus(RequestStatus.REQUEST_COMPLETED);
 				requestHandler.addCompleteRequest(currentRequest);
 			} catch (InterruptedException e) {
 				LOG.severe("Request Handler thread interrupted" + e.getMessage());
@@ -111,6 +109,8 @@ public class DatabaseThread implements Runnable{
 			LOG.severe("Database couldn't process request" + e.getMessage());
 			currentRequest.getRequest().setStatus(RequestStatus.REQUEST_FAILED);
 		}
+		
+		currentRequest.getRequest().setStatus(RequestStatus.REQUEST_COMPLETED);
 	}
 
 

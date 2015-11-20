@@ -8,34 +8,35 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import medproject.medlibrary.concurrency.Request;
 import medproject.medserver.netHandler.ChangeRequest;
+import medproject.medserver.netHandler.ClientSession;
 
 public class DataWriter{
 //FIXME: ArrayList vs something concurrent
-	private ConcurrentHashMap<SocketChannel,ArrayList<Request>> writingQueue = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<ClientSession,ArrayList<Request>> writingQueue = new ConcurrentHashMap<>();
 	private List<ChangeRequest> pendingChanges;
 
 	public DataWriter( List<ChangeRequest> pendingStateChanges) {
 		this.pendingChanges = pendingStateChanges; 
 	}
 
-	public void processWriteRequest(SocketChannel channel, Request request) {
+	public void processWriteRequest(ClientSession session, Request request) {
 		synchronized(this.writingQueue) {
-			if(writingQueue.containsKey(channel) && writingQueue.get(channel) != null)
-				writingQueue.get(channel).add(request);
+			if(writingQueue.get(session) != null)
+				writingQueue.get(session).add(request);
 			else{
 				ArrayList<Request> requestList = new ArrayList<Request>();
 				requestList.add(request);
 
-				writingQueue.put(channel, requestList);
+				writingQueue.put(session, requestList);
 			}
 		}
 
 		synchronized(pendingChanges){
-			pendingChanges.add(new ChangeRequest(channel, SelectionKey.OP_WRITE));
+			pendingChanges.add(new ChangeRequest(session.getChannel(), SelectionKey.OP_WRITE));
 		}
 	}
 
-	public ConcurrentHashMap<SocketChannel, ArrayList<Request>> getWritingQueue() {
+	public ConcurrentHashMap<ClientSession, ArrayList<Request>> getWritingQueue() {
 		return writingQueue;
 	}
 
