@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.Request;
-import medproject.medlibrary.concurrency.RequestStatus;
+import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medserver.dataWriter.DataWriter;
 import medproject.medserver.databaseHandler.DatabaseRequest;
 import medproject.medserver.databaseHandler.DatabaseThread;
@@ -27,13 +27,17 @@ public class RequestHandler implements Runnable{
 
 	private final Thread t;
 	private volatile boolean shouldStop = false;
-
+//TODO : constants
 	private int bytesForMessageSize = 8;
 
+	private final LoginHandler loginHandler;
+	
 	public RequestHandler(DataWriter dataWriter) throws SQLException {
 		this.dataWriter = dataWriter;
 		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521/pdbmed", "medadmin", "test");
 
+		this.loginHandler = new LoginHandler(databaseThread);
+		
 		this.t = new Thread(this);
 	}
 
@@ -102,8 +106,10 @@ public class RequestHandler implements Runnable{
 
 		//request.setStatus(RequestStatus.REQUEST_COMPLETED);
 	
-		//switch(RequestCodes.requestTypeGetter(request)){
-		//}	
+		switch(RequestCodes.getRequestType(request)){
+		case RequestCodes.LOGIN_TYPE_REQUEST:
+			
+		}	
 
 
 	}
