@@ -1,22 +1,19 @@
 package medproject.medserver.databaseHandler;
 
 import java.sql.Blob;
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medserver.logging.LogWriter;
-import medproject.medserver.netHandler.ClientSession;
-import medproject.medserver.requestHandler.RequestCodes;
 import medproject.medserver.requestHandler.RequestHandler;
+import oracle.jdbc.internal.OracleTypes;
 import oracle.jdbc.pool.OracleDataSource;
 
 public class DatabaseThread implements Runnable{
@@ -69,8 +66,6 @@ public class DatabaseThread implements Runnable{
 				
 				if(currentRequest == null)
 					return;
-				if(currentRequest.getRequest().getStatus() != RequestStatus.REQUEST_PENDING)
-					return;
 
 				processDatabaseRequest(currentRequest);
 				requestHandler.addCompleteRequest(currentRequest);
@@ -83,8 +78,7 @@ public class DatabaseThread implements Runnable{
 
 	private void processDatabaseRequest(DatabaseRequest currentRequest){
 		try {
-			PreparedStatement statement = currentRequest.getPreparedStatement(); 	
-			statement.clearParameters();
+			CallableStatement statement = databaseConnection.prepareCall(currentRequest.getProcedure().getSQL());
 
 			for(HashMap.Entry<Integer, String> parameter : currentRequest.getStringValues().entrySet()){
 				statement.setString(parameter.getKey(), parameter.getValue());
@@ -97,20 +91,21 @@ public class DatabaseThread implements Runnable{
 				statement.setBlob(parameter.getKey(), parameter.getValue());
 			}
 
-			if(currentRequest.isUpdatingRequest()){
+			if(currentRequest.getProcedure().isUpdatingRequest()){
 				int affectedRows = statement.executeUpdate();
 				currentRequest.setAffectedRows(affectedRows);
 			}
 			else{
-				ResultSet results = statement.executeQuery();
+				statement.registerOutParameter(1, OracleTypes.CURSOR);
+	            
+				statement.execute();
+				ResultSet results = (ResultSet) statement.getObject(1);
+				
 				currentRequest.setResultSet(results);
 			}	
 		} catch (SQLException e) {
 			LOG.severe("Database couldn't process request" + e.getMessage());
-			currentRequest.getRequest().setStatus(RequestStatus.REQUEST_FAILED);
 		}
-		
-		currentRequest.getRequest().setStatus(RequestStatus.REQUEST_COMPLETED);
 	}
 
 

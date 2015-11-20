@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
+import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medserver.dataWriter.DataWriter;
 import medproject.medserver.databaseHandler.DatabaseRequest;
 import medproject.medserver.databaseHandler.DatabaseThread;
@@ -36,7 +37,7 @@ public class RequestHandler implements Runnable{
 		this.dataWriter = dataWriter;
 		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521/pdbmed", "medadmin", "test");
 
-		this.loginHandler = new LoginHandler(databaseThread);
+		this.loginHandler = new LoginHandler(databaseThread.getDatabaseRequestTemplate());
 		
 		this.t = new Thread(this);
 	}
@@ -71,7 +72,8 @@ public class RequestHandler implements Runnable{
 		objectStream.close();
 
 		clientBuffer.clear();
-
+		LOG.info("Request deserialized");
+		
 		synchronized(this.requestQueue) {
 			if(currentRequest != null){
 				requestQueue.offer(new RequestEntry(currentRequest, client));
@@ -86,13 +88,11 @@ public class RequestHandler implements Runnable{
 			RequestEntry requestEntry = null;
 			try {
 				requestEntry = requestQueue.take();
-
+				sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
 				if(requestEntry.getRequest().isCompleted())
 					dataWriter.processWriteRequest(
 							requestEntry.getClientSession(), 
-							requestEntry.getRequest());
-				else
-					sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
+							requestEntry.getRequest());	
 				
 			} catch (InterruptedException e) {
 				LOG.severe("Request Handler thread interrupted");
@@ -101,22 +101,18 @@ public class RequestHandler implements Runnable{
 	}
 
 	private void sendRequestToSpecializedHandler(ClientSession client, Request request){
-//send database request
-		//Request currentRequest = new Request(RequestCodes.EMPTY_REQUEST, "", RequestCodes.REQUEST_PENDING);
-
-		//request.setStatus(RequestStatus.REQUEST_COMPLETED);
-	
 		switch(RequestCodes.getRequestType(request)){
 		case RequestCodes.LOGIN_TYPE_REQUEST:
-			
+			loginHandler.handleRequest(client, request);			break;
 		}	
-
-
 	}
 
-	public void addCompleteRequest(DatabaseRequest currentRequest){
+	public void addCompleteRequest(DatabaseRequest databaseRequest){
+		Request request = new Request(databaseRequest.getRequestCode(), databaseRequest.getResultSet());
+		request.setStatus(RequestStatus.REQUEST_PENDING);
+		
 		synchronized(this.requestQueue) {
-			requestQueue.offer(new RequestEntry(currentRequest.getRequest(), currentRequest.getClientSession()));
+			requestQueue.offer(new RequestEntry(request, databaseRequest.getClientSession()));
 		}
 	}
 

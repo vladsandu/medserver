@@ -60,6 +60,8 @@ public class NetRead {
 			//System.out.println("Received " + buffer.position() + " bytes");
 
 			if(client.isFinishedReading()){
+				LOG.info("New Request received");
+				
 				handlerThread.processNewRequest(client);
 				client.setCurrentMessageByteSize(0);
 			}

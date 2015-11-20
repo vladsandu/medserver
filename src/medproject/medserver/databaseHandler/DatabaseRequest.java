@@ -1,41 +1,40 @@
 package medproject.medserver.databaseHandler;
 
 import java.sql.Blob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import medproject.medlibrary.concurrency.Request;
 import medproject.medserver.netHandler.ClientSession;
 
 public class DatabaseRequest {
 
-	private final PreparedStatement preparedStatement;
+	private final StoredProcedure procedure;
 	private final ClientSession clientSession;
-	private final boolean updatingRequest;
-	private final Request request;
+	private final int requestCode;
 	
+
 	private final Map<Integer,Integer> intValues = new HashMap<Integer, Integer>();
 	private final Map<Integer,String> stringValues = new HashMap<Integer, String>();
 	private final Map<Integer,Blob> blobValues = new HashMap<Integer, Blob>();
 	
-	private ResultSet resultSet;
+	private ResultSet resultSet = null;
 	private int affectedRows = 0;
 	
-	public DatabaseRequest(ClientSession clientSession, Request request, PreparedStatement preparedStatement, boolean updatingRequest) {
+	public DatabaseRequest(ClientSession clientSession, int requestCode, StoredProcedure procedure) {
 		this.clientSession = clientSession;
-		this.request = request;
-		this.preparedStatement = preparedStatement;
-		this.updatingRequest = updatingRequest;
+		this.requestCode = requestCode;
+		this.procedure = procedure;
+		
 	}
 	
-	public Request getRequest() {
-		return request;
+	
+	public int getRequestCode() {
+		return requestCode;
 	}
 
 	public boolean isUpdatingRequest() {
-		return updatingRequest;
+		return procedure.isUpdatingRequest();
 	}
 
 	public ResultSet getResultSet() {
@@ -46,6 +45,19 @@ public class DatabaseRequest {
 		this.resultSet = resultSet;
 	}
 
+	
+	public void addIntValue(int position, int value){
+		intValues.put(position, value);
+	}
+	
+	public void addStringValue(int position, String value){
+		stringValues.put(position, value);
+	}
+	
+	public void addBlobValue(int position, Blob value){
+		blobValues.put(position, value);
+	}
+	
 	public Map<Integer, Integer> getIntValues() {
 		return intValues;
 	}
@@ -54,8 +66,13 @@ public class DatabaseRequest {
 		return stringValues;
 	}
 
-	public PreparedStatement getPreparedStatement() {
-		return preparedStatement;
+	public Map<Integer, Blob> getBlobValues() {
+		return blobValues;
+	}
+
+	
+	public StoredProcedure getProcedure() {
+		return procedure;
 	}
 
 	public int getAffectedRows() {
@@ -66,10 +83,7 @@ public class DatabaseRequest {
 		this.affectedRows = affectedRows;
 	}
 
-	public Map<Integer, Blob> getBlobValues() {
-		return blobValues;
-	}
-
+	
 	public ClientSession getClientSession() {
 		return clientSession;
 	}

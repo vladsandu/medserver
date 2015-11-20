@@ -1,42 +1,60 @@
 package medproject.medserver.requestHandler;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Logger;
+
 import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
-import medproject.medserver.databaseHandler.DatabaseThread;
+import medproject.medlibrary.concurrency.RequestStatus;
+import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
+import medproject.medserver.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
 
 public class LoginHandler {
 
-	private final DatabaseThread databaseThread;
+	private final Logger LOG = LogWriter.getLogger(this.getClass().getName());
 	
-	public LoginHandler(DatabaseThread databaseThread) {
-		this.databaseThread = databaseThread;
+	private final DatabaseRequestTemplate databaseRequestTemplate;
+
+	public LoginHandler(DatabaseRequestTemplate databaseRequestTemplate) {
+		this.databaseRequestTemplate = databaseRequestTemplate;
 	}
 
-	public boolean handleRequest(ClientSession session, Request request){
-		
+	public void handleRequest(ClientSession session, Request request){
 		switch(request.getREQUEST_CODE()){
 		case RequestCodes.OPERATOR_LOOKUP_REQUEST:
-			return handleOperatorLookupRequest(session, request);
-			break;
+			handleOperatorLookupRequest(session, request);	break;
 		case RequestCodes.LOGIN_REQUEST:
-			return handleLoginRequest(session, request);
-			break;
-		default: break;
+			handleLoginRequest(session, request); 			break;
+		default: 											break;
 		}
-		
-		return false;
-	}
-	
-	private boolean handleLoginRequest(ClientSession session, Request request) {
-		
-		return false;
 	}
 
-	private boolean handleOperatorLookupRequest(ClientSession session, Request request){
-		String operatorName = (String) request.getData();
-		
-		
-		return false;
+	private void handleLoginRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+		}
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+
+		}
+	}
+
+	private void handleOperatorLookupRequest(ClientSession session, Request request){
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+			String operatorName = (String) request.getData();
+
+			databaseRequestTemplate.makeOperatorLookupRequest(session, operatorName);
+		}
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			ResultSet results = (ResultSet) request.getData();
+			try {
+			if(results.next())
+				System.out.println(results.getString("encrypted_password"));
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }
