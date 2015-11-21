@@ -6,14 +6,17 @@ import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.Request;
 import medproject.medserver.dataWriter.DataWriter;
+import medproject.medserver.logging.LogWriter;
 
 public class NetSend {
-
+	
+	private final Logger LOG = LogWriter.getLogger(this.getClass().getName());
 	private DataWriter dataWriter;
 	private int bytesForMessageSize = 8;
 
@@ -24,7 +27,7 @@ public class NetSend {
 	void send(ClientSession session) throws IOException{
 
 		synchronized(dataWriter.getWritingQueue()){
-			ConcurrentHashMap<ClientSession, ArrayList<Request>> pendingData = dataWriter.getWritingQueue();
+			ConcurrentHashMap<ClientSession, List<Request>> pendingData = dataWriter.getWritingQueue();
 
 			if(!pendingData.containsKey(session)){
 				session.getSelectionKey().interestOps(SelectionKey.OP_READ);
@@ -39,7 +42,7 @@ public class NetSend {
 			ByteBuffer writeBuffer = session.getWriteBuffer();
 			writeBuffer.clear();
 
-			Object data = pendingData.get(session.getChannel()).remove(0);
+			Object data = pendingData.get(session).remove(0);
 
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
@@ -73,10 +76,10 @@ public class NetSend {
 				session.disconnect();
 			}
 
-			//System.out.println("Pachet trimis");
+			LOG.info("Pachet trimis");
 			objectStream.close();
 
-			if(!pendingData.get(session.getChannel()).isEmpty())
+			if(!pendingData.get(session).isEmpty())
 				session.getSelectionKey().interestOps(SelectionKey.OP_WRITE);
 			else
 				session.getSelectionKey().interestOps(SelectionKey.OP_READ);
