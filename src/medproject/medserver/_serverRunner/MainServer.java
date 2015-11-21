@@ -15,6 +15,8 @@ public class MainServer {
 	 
 	public static void main(String[] args) throws Throwable {
 		LogWriter.useFileLogging();
+		LogWriter.setDebugMode(true);
+		
 		//load configuration from config file
 		NetServerThread netServerThread = new NetServerThread(new InetSocketAddress("localhost", 1338));
 		
