@@ -1,7 +1,7 @@
 package medproject.medserver.databaseHandler;
 
 public enum StoredProcedure {
-	OperatorLookup("{call operatorLookup(?,?)}", false);
+	OperatorLogin("{call operatorLogin(?,?,?,?)}", false);
 
 	private StoredProcedure(String sql, boolean updatingRequest) {
 		this.sql = sql;
