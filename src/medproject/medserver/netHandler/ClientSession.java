@@ -4,8 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-import medproject.medlibrary.account.Account;
-import medproject.medlibrary.concurrency.Request;
+import medproject.medlibrary.account.Operator;
 import medproject.medserver._serverRunner.MainServer;
 import medproject.medserver.constants.Settings;
 
@@ -23,7 +22,7 @@ public class ClientSession {
 	
     private int currentMessageByteSize = 0;
 	
-    Account account = new Account(-1, "unset", "unset");
+    Operator operator = null;
     
     ClientSession(SelectionKey selkey, SocketChannel chan) throws Throwable {
             this.selectionKey = selkey;
@@ -62,12 +61,12 @@ public class ClientSession {
 		return writeBuffer;
 	}
 
-	public Account getOperator() {
-		return account;
+	public Operator getOperator() {
+		return operator;
 	}
 
-	public void setOperator(Account account) {
-		this.account = account;
+	public void setOperator(Operator operator) {
+		this.operator = operator;
 	}
 
 	public int getCurrentMessageByteSize() {
