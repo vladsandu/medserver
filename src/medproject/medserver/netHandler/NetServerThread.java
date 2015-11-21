@@ -46,10 +46,10 @@ public class NetServerThread {
 
 	public void start(){
 		this.handlerThread.start();
-		
 		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
 			processConnections();
 		}, 0, 500, TimeUnit.MILLISECONDS);
+		LOG.info("Net thread started");
 	}
 
 	public void stop(){
@@ -128,7 +128,7 @@ public class NetServerThread {
 				}
 
 			} catch (Throwable t) {
-				LOG.severe("NetServerThread exception");
+				LOG.severe("NetServerThread exception: " + t.getMessage());
 			}
 		}
 	}

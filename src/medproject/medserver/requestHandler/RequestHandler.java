@@ -45,6 +45,7 @@ public class RequestHandler implements Runnable{
 	public void start() {
 		databaseThread.start();
 		t.start();
+		LOG.info("Request handler thread started");
 	}
 
 	public void stop() {   

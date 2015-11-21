@@ -105,6 +105,9 @@ public class DatabaseThread implements Runnable{
 			}	
 		} catch (SQLException e) {
 			LOG.severe("Database couldn't process request" + e.getMessage());
+			currentRequest.setAffectedRows(0);
+			currentRequest.setResultSet(null);
+		//TODO: Do a status
 		}
 	}
 
