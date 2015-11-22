@@ -32,12 +32,14 @@ public class RequestHandler implements Runnable{
 	private int bytesForMessageSize = 8;
 
 	private final LoginHandler loginHandler;
+	private final PatientHandler patientHandler;
 	
 	public RequestHandler(DataWriter dataWriter) throws SQLException {
 		this.dataWriter = dataWriter;
 		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521/pdbmed", "medadmin", "test");
 
-		this.loginHandler = new LoginHandler(databaseThread.getDatabaseRequestTemplate());
+		loginHandler = new LoginHandler(databaseThread.getDatabaseRequestTemplate());
+		patientHandler = new PatientHandler(databaseThread.getDatabaseRequestTemplate());
 		
 		this.t = new Thread(this);
 	}
@@ -105,6 +107,8 @@ public class RequestHandler implements Runnable{
 		switch(RequestCodes.getRequestType(request)){
 		case RequestCodes.LOGIN_TYPE_REQUEST:
 			loginHandler.handleRequest(client, request);			break;
+		case RequestCodes.PATIENT_TYPE_REQUEST:
+			patientHandler.handleRequest(client, request);			break;
 		}	
 	}
 
