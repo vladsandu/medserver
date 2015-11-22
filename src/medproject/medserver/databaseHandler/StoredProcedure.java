@@ -1,7 +1,8 @@
 package medproject.medserver.databaseHandler;
 
 public enum StoredProcedure {
-	OperatorLogin("{call operatorLogin(?,?,?,?)}", false);
+	OperatorLogin("{call operatorLogin(?,?,?,?)}", false),
+	LoadPatientList("{call loadpatientlist(?,?)}", false);
 
 	private StoredProcedure(String sql, boolean updatingRequest) {
 		this.sql = sql;

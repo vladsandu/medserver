@@ -30,6 +30,14 @@ public class DatabaseRequestTemplate {
 		makeDatabaseRequest(databaseRequest);
 	}
 	
+	public void makePatientListRequest(ClientSession session){
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.PATIENT_LIST_REQUEST, StoredProcedure.LoadPatientList);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		
+		makeDatabaseRequest(databaseRequest);
+	}
+	
 	private void makeDatabaseRequest(DatabaseRequest currentRequest){
 		synchronized(databaseRequests){
 			databaseRequests.offer(currentRequest);
