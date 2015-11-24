@@ -47,10 +47,10 @@ public class PatientHandler {
 				while(results.next()){
 					Patient patient = new Patient(
 							results.getInt("id"),
-							results.getInt("cnp"), 
+							results.getString("cnp"), 
 							results.getString("nume"), 
 							results.getString("prenume"), 
-							(results.getInt("gen") == 1 ? "Masculin" : "Feminin"), 
+							(results.getInt("gen") == 1 ? "M" : "F"), 
 							results.getDate("data_nastere").toString(),
 							results.getString("cetatenie"),
 							new Address(null, null, null), 
@@ -62,14 +62,14 @@ public class PatientHandler {
 				}
 				
 				if(patientList.size() > 0){
-					request.setStatus(RequestStatus.REQUEST_COMPLETED);
 					request.setMessage("Patient selection successful");
 				}
 				else{
-					request.setStatus(RequestStatus.REQUEST_FAILED);
 					request.setMessage("No patients found.");
 				}
-			
+				
+				request.setStatus(RequestStatus.REQUEST_COMPLETED);
+				
 			} catch (SQLException e) {
 				LOG.severe("Patient Handle Error: " + e.getMessage());
 				request.setStatus(RequestStatus.REQUEST_FAILED);
