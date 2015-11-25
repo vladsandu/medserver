@@ -10,8 +10,10 @@ import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medlibrary.patient.Address;
+import medproject.medlibrary.patient.ListingRecord;
 import medproject.medlibrary.patient.Patient;
 import medproject.medlibrary.patient.PatientCategory;
+import medproject.medlibrary.patient.PatientRecord;
 import medproject.medlibrary.patient.PatientStatus;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
 import medproject.medserver.logging.LogWriter;
@@ -45,17 +47,32 @@ public class PatientHandler {
 			request.setDATA(patientList);
 			try {	
 				while(results.next()){
-					Patient patient = new Patient(
-							results.getInt("id"),
+					Address address = new Address(
+							results.getString("judet"),
+							results.getString("localitate"),
+							results.getString("strada"));
+					
+					PatientRecord patientRecord = new PatientRecord(address,
 							results.getString("cnp"), 
 							results.getString("nume"), 
 							results.getString("prenume"), 
-							(results.getInt("gen") == 1 ? "M" : "F"), 
-							results.getDate("data_nastere").toString(),
-							results.getString("cetatenie"),
-							new Address(null, null, null), 
+							(results.getInt("sex") == 1 ? "M" : "F"), 
+							results.getDate("data_nastere"),
+							results.getDate("data_deces"),
+							results.getString("cetatenie"), 
+							results.getInt("grupa_sanguina"), 
+							results.getInt("rh"));
+					
+					ListingRecord listingRecord = new ListingRecord(
+							results.getDate("data_inscriere"), 
+							results.getDate("data_iesire"), 
+							results.getBoolean("inscris"));
+					
+					Patient patient = new Patient(
+							results.getInt("pacient_id"),
+							patientRecord, 
+							listingRecord,
 							PatientCategory.getCategoryByID(results.getInt("categorie")),
-							results.getDate("data_inscriere").toString(), 
 							PatientStatus.getStatusByID(results.getInt("stare_asigurat")));
 					
 					patientList.add(patient);
