@@ -10,11 +10,11 @@ import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medlibrary.patient.Address;
-import medproject.medlibrary.patient.ListingRecord;
 import medproject.medlibrary.patient.Patient;
 import medproject.medlibrary.patient.PatientCategory;
 import medproject.medlibrary.patient.PatientRecord;
 import medproject.medlibrary.patient.PatientStatus;
+import medproject.medlibrary.patient.RegistrationRecord;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
 import medproject.medserver.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
@@ -63,7 +63,7 @@ public class PatientHandler {
 							results.getInt("grupa_sanguina"), 
 							results.getInt("rh"));
 					
-					ListingRecord listingRecord = new ListingRecord(
+					RegistrationRecord registrationRecord = new RegistrationRecord(
 							results.getDate("data_inscriere"), 
 							results.getDate("data_iesire"), 
 							results.getBoolean("inscris"));
@@ -71,7 +71,7 @@ public class PatientHandler {
 					Patient patient = new Patient(
 							results.getInt("pacient_id"),
 							patientRecord, 
-							listingRecord,
+							registrationRecord,
 							PatientCategory.getCategoryByID(results.getInt("categorie")),
 							PatientStatus.getStatusByID(results.getInt("stare_asigurat")));
 					
