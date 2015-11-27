@@ -1,19 +1,21 @@
 package medproject.medserver.databaseHandler;
 
 public enum StoredProcedure {
-	OperatorLogin("{call operatorLogin(?,?,?,?)}", false),
-	LoadPatientList("{call loadpatientlist(?,?)}", false);
+	OperatorLogin("{call operatorLogin(?,?,?,?)}", true),
+	LoadPatientList("{call loadpatientlist(?,?)}", true),
+	PatientRecordByCNP("{call patientRecordByCNP(?,?)}", true),
+	AddPatient("{call addPatient(?,?,?,?)}", true);
 
-	private StoredProcedure(String sql, boolean updatingRequest) {
+	private StoredProcedure(String sql, boolean selectionRequest) {
 		this.sql = sql;
-		this.updatingRequest = updatingRequest;
+		this.selectionRequest = selectionRequest;
 	}
 	
 	private final String sql;
-	private final boolean updatingRequest;
+	private final boolean selectionRequest;
 	
-	public boolean isUpdatingRequest() {
-		return updatingRequest;
+	public boolean isSelectionRequest() {
+		return selectionRequest;
 	}
 	
 	public String getSQL(){
