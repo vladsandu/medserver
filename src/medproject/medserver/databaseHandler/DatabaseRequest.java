@@ -33,8 +33,8 @@ public class DatabaseRequest {
 		return requestCode;
 	}
 
-	public boolean isUpdatingRequest() {
-		return procedure.isUpdatingRequest();
+	public boolean isSelectionRequest() {
+		return procedure.isSelectionRequest();
 	}
 
 	public ResultSet getResultSet() {

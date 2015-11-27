@@ -91,7 +91,7 @@ public class DatabaseThread implements Runnable{
 				statement.setBlob(parameter.getKey(), parameter.getValue());
 			}
 
-			if(currentRequest.getProcedure().isUpdatingRequest()){
+			if(!currentRequest.getProcedure().isSelectionRequest()){
 				int affectedRows = statement.executeUpdate();
 				currentRequest.setAffectedRows(affectedRows);
 			}
