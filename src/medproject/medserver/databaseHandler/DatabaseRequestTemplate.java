@@ -30,6 +30,16 @@ public class DatabaseRequestTemplate {
 		makeDatabaseRequest(databaseRequest);
 	}
 	
+	public void makePatientRecordByCNPRequest(ClientSession session, String CNP){
+		
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.PATIENT_RECORD_BY_CNP_REQUEST, StoredProcedure.PatientRecordByCNP);
+	
+		databaseRequest.addStringValue(2, CNP);
+		
+		makeDatabaseRequest(databaseRequest);
+	}
+	
 	public void makePatientListRequest(ClientSession session){
 		DatabaseRequest databaseRequest = new DatabaseRequest(
 				session, RequestCodes.PATIENT_LIST_REQUEST, StoredProcedure.LoadPatientList);
@@ -37,10 +47,22 @@ public class DatabaseRequestTemplate {
 		
 		makeDatabaseRequest(databaseRequest);
 	}
+
+	public void makeAddPatientRequest(ClientSession session, int pid, int pin) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.ADD_PATIENT_REQUEST, StoredProcedure.AddPatient);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, pid);
+		databaseRequest.addIntValue(4, pin);
+		
+		makeDatabaseRequest(databaseRequest);
+	
+	}
 	
 	private void makeDatabaseRequest(DatabaseRequest currentRequest){
 		synchronized(databaseRequests){
 			databaseRequests.offer(currentRequest);
 		}
 	}
+
 }
