@@ -92,8 +92,9 @@ public class DatabaseThread implements Runnable{
 			}
 
 			if(!currentRequest.getProcedure().isSelectionRequest()){
-				int affectedRows = statement.executeUpdate();
-				currentRequest.setAffectedRows(affectedRows);
+				statement.registerOutParameter(1, OracleTypes.NUMBER);
+				statement.execute();
+		       	currentRequest.setAffectedRows(statement.getInt(1));
 			}
 			else{
 				statement.registerOutParameter(1, OracleTypes.CURSOR);
