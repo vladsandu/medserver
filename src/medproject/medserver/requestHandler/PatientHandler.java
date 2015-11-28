@@ -10,10 +10,13 @@ import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
 import medproject.medlibrary.patient.Address;
+import medproject.medlibrary.patient.BloodType;
+import medproject.medlibrary.patient.Gender;
 import medproject.medlibrary.patient.Patient;
 import medproject.medlibrary.patient.PatientCategory;
 import medproject.medlibrary.patient.PatientRecord;
 import medproject.medlibrary.patient.PatientStatus;
+import medproject.medlibrary.patient.RHType;
 import medproject.medlibrary.patient.RegistrationRecord;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
 import medproject.medserver.logging.LogWriter;
@@ -36,8 +39,41 @@ public class PatientHandler {
 			handlePatientRecordByCNPRequest(session, request); 			break;
 		case RequestCodes.ADD_PATIENT_REQUEST:
 			handleAddPatientRequest(session, request); 			break;
+		case RequestCodes.UPDATE_PATIENT_ADDRESS_REQUEST:
+			handleUpdatePatientAddressRequest(session, request); 			break;
 
 		default: 													break;
+		}
+	}
+
+	private void handleUpdatePatientAddressRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Invalid Data");
+			}
+			else
+				databaseRequestTemplate.makeUpdatePatientAddressRequest(session, (Address)request.getDATA());
+
+		}
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			int affectedRows = (int) request.getDATA();
+
+			if(affectedRows == 1){
+				request.setMessage("Address update successful");
+				request.setStatus(RequestStatus.REQUEST_COMPLETED);
+			}
+			else{
+				request.setMessage("Update failed.");
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+			}
 		}
 	}
 
@@ -48,7 +84,7 @@ public class PatientHandler {
 				request.setStatus(RequestStatus.REQUEST_FAILED);
 			else{
 				int PID = (int) request.getDATA();
-				
+
 				databaseRequestTemplate.makeAddPatientRequest(session, PID, request.getPIN());
 			}
 		}
@@ -58,14 +94,15 @@ public class PatientHandler {
 				request.setMessage("The database couldn't process the request");
 				return;
 			}
-			
+
 			ResultSet results = (ResultSet) request.getDATA();
 
 			try {	
 				Patient patient = null;
-				
+
 				if(results.next()){
 					Address address = new Address(
+							results.getInt("id"),
 							results.getString("judet"),
 							results.getString("localitate"),
 							results.getString("strada"));
@@ -75,13 +112,15 @@ public class PatientHandler {
 							results.getString("cnp"), 
 							results.getString("nume"), 
 							results.getString("prenume"), 
-							(results.getInt("sex") == 1 ? "M" : "F"), 
+							(results.getInt("sex") == 1 ? Gender.MASCULIN : Gender.FEMININ), 
 							results.getDate("data_nastere"),
 							results.getDate("data_deces"),
-							results.getString("cetatenie"), 
-							results.getInt("grupa_sanguina"), 
-							results.getInt("rh"));
-
+							results.getString("cetatenie"),
+							PatientCategory.getCategoryByID(results.getInt("categorie")),
+							PatientStatus.getStatusByID(results.getInt("stare_asigurat")), 
+							BloodType.getBloodTypeFromInt(results.getInt("grupa_sanguina")), 
+							(results.getInt("rh") == 1 ? RHType.POZITIV : RHType.NEGATIV));
+					//TODO: Refactor
 					RegistrationRecord registrationRecord = new RegistrationRecord(
 							results.getDate("data_inscriere"), 
 							results.getDate("data_iesire"), 
@@ -90,11 +129,9 @@ public class PatientHandler {
 					patient = new Patient(
 							results.getInt("pacient_id"),
 							patientRecord, 
-							registrationRecord,
-							PatientCategory.getCategoryByID(results.getInt("categorie")),
-							PatientStatus.getStatusByID(results.getInt("stare_asigurat")));
+							registrationRecord);
 				}
-				
+
 				if(patient != null){
 					request.setMessage("Person selection successful");
 					request.setStatus(RequestStatus.REQUEST_COMPLETED);
@@ -103,7 +140,7 @@ public class PatientHandler {
 					request.setMessage("PIN incorrect");
 					request.setStatus(RequestStatus.REQUEST_FAILED);
 				}
-				
+
 				request.setDATA(patient);
 
 			} catch (SQLException e) {
@@ -114,7 +151,7 @@ public class PatientHandler {
 			}
 		}		
 	}
-	
+
 	private void handlePatientRecordByCNPRequest(ClientSession session, Request request){
 		if(request.getStatus() == RequestStatus.REQUEST_NEW){
 
@@ -132,7 +169,7 @@ public class PatientHandler {
 				request.setMessage("The database couldn't process the request");
 				return;
 			}
-			
+
 			ResultSet results = (ResultSet) request.getDATA();
 
 			List<PatientRecord> patientRecordList = new ArrayList<>();
@@ -141,6 +178,7 @@ public class PatientHandler {
 			try {	
 				while(results.next()){
 					Address address = new Address(
+							results.getInt("id"),
 							results.getString("judet"),
 							results.getString("localitate"),
 							results.getString("strada"));
@@ -150,12 +188,14 @@ public class PatientHandler {
 							results.getString("cnp"), 
 							results.getString("nume"), 
 							results.getString("prenume"), 
-							(results.getInt("sex") == 1 ? "M" : "F"), 
+							(results.getInt("sex") == 1 ? Gender.MASCULIN : Gender.FEMININ), 
 							results.getDate("data_nastere"),
 							results.getDate("data_deces"),
-							results.getString("cetatenie"), 
-							results.getInt("grupa_sanguina"), 
-							results.getInt("rh"));
+							results.getString("cetatenie"),
+							PatientCategory.getCategoryByID(results.getInt("categorie")),
+							PatientStatus.getStatusByID(results.getInt("stare_asigurat")),
+							BloodType.getBloodTypeFromInt(results.getInt("grupa_sanguina")), 
+							(results.getInt("rh") == 1 ? RHType.POZITIV : RHType.NEGATIV));
 
 					patientRecordList.add(patientRecord);
 				}
@@ -188,7 +228,7 @@ public class PatientHandler {
 				request.setMessage("The database couldn't process the request");
 				return;
 			}
-			
+
 			ResultSet results = (ResultSet) request.getDATA();
 
 			List<Patient> patientList = new ArrayList<Patient>();
@@ -196,6 +236,7 @@ public class PatientHandler {
 			try {	
 				while(results.next()){
 					Address address = new Address(
+							results.getInt("id"),
 							results.getString("judet"),
 							results.getString("localitate"),
 							results.getString("strada"));
@@ -206,12 +247,14 @@ public class PatientHandler {
 							results.getString("cnp"), 
 							results.getString("nume"), 
 							results.getString("prenume"), 
-							(results.getInt("sex") == 1 ? "M" : "F"), 
+							(results.getInt("sex") == 1 ? Gender.MASCULIN : Gender.FEMININ), 
 							results.getDate("data_nastere"),
 							results.getDate("data_deces"),
-							results.getString("cetatenie"), 
-							results.getInt("grupa_sanguina"), 
-							results.getInt("rh"));
+							results.getString("cetatenie"),
+							PatientCategory.getCategoryByID(results.getInt("categorie")),
+							PatientStatus.getStatusByID(results.getInt("stare_asigurat")), 
+							BloodType.getBloodTypeFromInt(results.getInt("grupa_sanguina")), 
+							(results.getInt("rh") == 1 ? RHType.POZITIV : RHType.NEGATIV));
 
 					RegistrationRecord registrationRecord = new RegistrationRecord(
 							results.getDate("data_inscriere"), 
@@ -221,9 +264,7 @@ public class PatientHandler {
 					Patient patient = new Patient(
 							results.getInt("pacient_id"),
 							patientRecord, 
-							registrationRecord,
-							PatientCategory.getCategoryByID(results.getInt("categorie")),
-							PatientStatus.getStatusByID(results.getInt("stare_asigurat")));
+							registrationRecord);
 
 					patientList.add(patient);
 				}

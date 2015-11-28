@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import medproject.medlibrary.account.LoginStructure;
 import medproject.medlibrary.concurrency.RequestCodes;
+import medproject.medlibrary.patient.Address;
 import medproject.medserver.netHandler.ClientSession;
 
 public class DatabaseRequestTemplate {
@@ -59,10 +60,22 @@ public class DatabaseRequestTemplate {
 	
 	}
 	
+	public void makeUpdatePatientAddressRequest(ClientSession session, Address data) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.UPDATE_PATIENT_ADDRESS_REQUEST, StoredProcedure.UpdatePatientAddress);
+		//TODO: LATER
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, data.getPersonID());
+		databaseRequest.addStringValue(4, data.getCounty());
+		databaseRequest.addStringValue(5, data.getCity());
+		databaseRequest.addStringValue(6, data.getStreet());
+		
+		makeDatabaseRequest(databaseRequest);
+	}
+
 	private void makeDatabaseRequest(DatabaseRequest currentRequest){
 		synchronized(databaseRequests){
 			databaseRequests.offer(currentRequest);
 		}
 	}
-
 }
