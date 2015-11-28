@@ -116,6 +116,9 @@ public class RequestHandler implements Runnable{
 		Request request = new Request(databaseRequest.getRequestCode(), databaseRequest.getResultSet());
 		request.setStatus(RequestStatus.REQUEST_PENDING);
 		
+		if(!databaseRequest.getProcedure().isSelectionRequest())
+			request.setDATA(databaseRequest.getAffectedRows());
+		
 		synchronized(this.requestQueue) {
 			requestQueue.offer(new RequestEntry(request, databaseRequest.getClientSession()));
 		}
