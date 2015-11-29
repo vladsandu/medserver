@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medlibrary.patient.Address;
 import medproject.medlibrary.patient.BloodType;
 import medproject.medlibrary.patient.Gender;
@@ -19,7 +20,6 @@ import medproject.medlibrary.patient.PatientStatus;
 import medproject.medlibrary.patient.RHType;
 import medproject.medlibrary.patient.RegistrationRecord;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
-import medproject.medserver.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
 
 public class PatientHandler {
@@ -34,16 +34,50 @@ public class PatientHandler {
 	public void handleRequest(ClientSession session, Request request){
 		switch(request.getREQUEST_CODE()){
 		case RequestCodes.PATIENT_LIST_REQUEST:
-			handlePatientListRequest(session, request); 			break;
+			handlePatientListRequest(session, request); 					break;
 		case RequestCodes.PATIENT_RECORD_BY_CNP_REQUEST:
-			handlePatientRecordByCNPRequest(session, request); 			break;
+			handlePatientRecordByCNPRequest(session, request); 				break;
 		case RequestCodes.ADD_PATIENT_REQUEST:
-			handleAddPatientRequest(session, request); 			break;
+			handleAddPatientRequest(session, request); 						break;
 		case RequestCodes.UPDATE_PATIENT_ADDRESS_REQUEST:
 			handleUpdatePatientAddressRequest(session, request); 			break;
+		case RequestCodes.DELETE_PATIENT_REQUEST:
+			handleDeletePatientRequest(session, request); 					break;
 
-		default: 													break;
+		default: 															break;
 		}
+	}
+
+	private void handleDeletePatientRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Invalid Data");
+			}
+			else
+				databaseRequestTemplate.makeDeletePatientRequest(session, (int)request.getDATA());
+
+		}//TODO: refactor into smaller methods
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			int affectedRows = (int) request.getDATA();
+			System.out.println(affectedRows);
+			if(affectedRows == 1){
+				request.setMessage("Patient delete successful");
+				request.setStatus(RequestStatus.REQUEST_COMPLETED);
+			}
+			else{
+				request.setMessage("Patient delete failed.");
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+			}
+		}
+		
 	}
 
 	private void handleUpdatePatientAddressRequest(ClientSession session, Request request) {
