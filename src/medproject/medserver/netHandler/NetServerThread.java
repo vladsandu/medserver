@@ -14,10 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver._serverRunner.MainServer;
 import medproject.medserver.dataWriter.DataWriter;
-import medproject.medserver.databaseHandler.DatabaseThread;
-import medproject.medserver.logging.LogWriter;
 import medproject.medserver.requestHandler.RequestHandler;
 
 public class NetServerThread {

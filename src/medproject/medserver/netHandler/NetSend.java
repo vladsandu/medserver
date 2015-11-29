@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import medproject.medlibrary.concurrency.Request;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.dataWriter.DataWriter;
-import medproject.medserver.logging.LogWriter;
 
 public class NetSend {
 	

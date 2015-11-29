@@ -4,8 +4,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.util.HashMap;
 
-import medproject.medserver.databaseHandler.DatabaseThread;
-import medproject.medserver.logging.LogWriter;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
 import medproject.medserver.netHandler.NetServerThread;
 
@@ -14,7 +13,7 @@ public class MainServer {
 	public static HashMap<SelectionKey, ClientSession> clientMap = new HashMap<SelectionKey, ClientSession>();
 	 
 	public static void main(String[] args) throws Throwable {
-		LogWriter.useFileLogging();
+		LogWriter.useFileLogging("medServer_log.log");
 		LogWriter.setDebugMode(true);
 		
 		//load configuration from config file

@@ -11,10 +11,10 @@ import java.util.logging.Logger;
 import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.dataWriter.DataWriter;
 import medproject.medserver.databaseHandler.DatabaseRequest;
 import medproject.medserver.databaseHandler.DatabaseThread;
-import medproject.medserver.logging.LogWriter;
 import medproject.medserver.netHandler.ClientSession;
 
 public class RequestHandler implements Runnable{

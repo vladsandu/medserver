@@ -6,7 +6,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.logging.Logger;
 
-import medproject.medserver.logging.LogWriter;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.requestHandler.RequestHandler;
 
 public class NetRead {

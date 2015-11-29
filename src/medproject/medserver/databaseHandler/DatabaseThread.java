@@ -10,8 +10,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
-import medproject.medlibrary.concurrency.RequestStatus;
-import medproject.medserver.logging.LogWriter;
+import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.requestHandler.RequestHandler;
 import oracle.jdbc.internal.OracleTypes;
 import oracle.jdbc.pool.OracleDataSource;
