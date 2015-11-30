@@ -46,6 +46,8 @@ public class PatientHandler {
 			handleDeletePatientRequest(session, request); 					break;
 		case RequestCodes.UNREGISTER_PATIENT_REQUEST:
 			handleUnregisterPatientRequest(session, request); 				break;
+		case RequestCodes.REGISTER_PATIENT_REQUEST:
+			handleRegisterPatientRequest(session, request); 				break;
 
 		default: 															break;
 		}
@@ -129,6 +131,56 @@ public class PatientHandler {
 		}
 
 	}
+
+
+	private void handleRegisterPatientRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Invalid Data");
+			}
+			else
+				databaseRequestTemplate.makeRegisterPatientRequest(session, (int)request.getDATA());
+
+		}//TODO: refactor into smaller methods
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			if(request.getDATA() != null){
+
+				try {
+					ResultSet results = (ResultSet) request.getDATA();
+					if(results.next()){
+						Date registrationDate;
+
+						registrationDate = results.getDate("data_inscriere");
+
+						request.setDATA(registrationDate);
+
+						request.setMessage("Patient registration successful");
+						request.setStatus(RequestStatus.REQUEST_COMPLETED);
+					}
+					else{
+						request.setDATA(null);
+						request.setMessage("Patient registration failed.");
+						request.setStatus(RequestStatus.REQUEST_FAILED);
+					}
+				} catch (SQLException e) {
+					request.setDATA(null);
+					request.setMessage("Patient registration failed.");
+					request.setStatus(RequestStatus.REQUEST_FAILED);
+				}
+			}
+		}
+
+	}
+
+	
 	private void handleUpdatePatientAddressRequest(ClientSession session, Request request) {
 		if(request.getStatus() == RequestStatus.REQUEST_NEW){
 

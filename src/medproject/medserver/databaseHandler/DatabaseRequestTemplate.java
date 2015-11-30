@@ -95,5 +95,13 @@ public class DatabaseRequestTemplate {
 		
 		makeDatabaseRequest(databaseRequest);
 	}
-
+	
+	public void makeRegisterPatientRequest(ClientSession session, int patientID) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.REGISTER_PATIENT_REQUEST, StoredProcedure.RegisterPatient);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, patientID);
+		
+		makeDatabaseRequest(databaseRequest);
+	}
 }
