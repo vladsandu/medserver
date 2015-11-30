@@ -6,7 +6,8 @@ public enum StoredProcedure {
 	PatientRecordByCNP("{call patientRecordByCNP(?,?)}", true),
 	AddPatient("{call addPatient(?,?,?,?)}", true),
 	UpdatePatientAddress("{call updatePatientAddress(?,?,?,?,?,?)}", false), 
-	DeletePatient("{call deletePatient(?,?,?)}", false);
+	DeletePatient("{call deletePatient(?,?,?)}", false), 
+	UnregisterPatient("{call unregisterPatient(?,?,?)}", true);
 
 	private StoredProcedure(String sql, boolean selectionRequest) {
 		this.sql = sql;

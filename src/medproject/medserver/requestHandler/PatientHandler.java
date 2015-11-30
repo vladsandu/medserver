@@ -1,5 +1,6 @@
 package medproject.medserver.requestHandler;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import medproject.medlibrary.patient.RHType;
 import medproject.medlibrary.patient.RegistrationRecord;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
 import medproject.medserver.netHandler.ClientSession;
-
+//TODO: REFACTOR THIS!!!
 public class PatientHandler {
 	private final Logger LOG = LogWriter.getLogger(this.getClass().getName());
 
@@ -43,6 +44,8 @@ public class PatientHandler {
 			handleUpdatePatientAddressRequest(session, request); 			break;
 		case RequestCodes.DELETE_PATIENT_REQUEST:
 			handleDeletePatientRequest(session, request); 					break;
+		case RequestCodes.UNREGISTER_PATIENT_REQUEST:
+			handleUnregisterPatientRequest(session, request); 				break;
 
 		default: 															break;
 		}
@@ -67,7 +70,7 @@ public class PatientHandler {
 			}
 
 			int affectedRows = (int) request.getDATA();
-			System.out.println(affectedRows);
+
 			if(affectedRows == 1){
 				request.setMessage("Patient delete successful");
 				request.setStatus(RequestStatus.REQUEST_COMPLETED);
@@ -77,9 +80,55 @@ public class PatientHandler {
 				request.setStatus(RequestStatus.REQUEST_FAILED);
 			}
 		}
-		
+
 	}
 
+	private void handleUnregisterPatientRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Invalid Data");
+			}
+			else
+				databaseRequestTemplate.makeUnregisterPatientRequest(session, (int)request.getDATA());
+
+		}//TODO: refactor into smaller methods
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			if(request.getDATA() != null){
+
+				try {
+					ResultSet results = (ResultSet) request.getDATA();
+					if(results.next()){
+						Date unregistrationDate;
+
+						unregistrationDate = results.getDate("data_iesire");
+
+						request.setDATA(unregistrationDate);
+
+						request.setMessage("Patient unregistration successful");
+						request.setStatus(RequestStatus.REQUEST_COMPLETED);
+					}
+					else{
+						request.setDATA(null);
+						request.setMessage("Patient unregistration failed.");
+						request.setStatus(RequestStatus.REQUEST_FAILED);
+					}
+				} catch (SQLException e) {
+					request.setDATA(null);
+					request.setMessage("Patient unregistration failed.");
+					request.setStatus(RequestStatus.REQUEST_FAILED);
+				}
+			}
+		}
+
+	}
 	private void handleUpdatePatientAddressRequest(ClientSession session, Request request) {
 		if(request.getStatus() == RequestStatus.REQUEST_NEW){
 

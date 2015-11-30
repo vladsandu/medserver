@@ -87,4 +87,13 @@ public class DatabaseRequestTemplate {
 		}
 	}
 
+	public void makeUnregisterPatientRequest(ClientSession session, int patientID) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.UNREGISTER_PATIENT_REQUEST, StoredProcedure.UnregisterPatient);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, patientID);
+		
+		makeDatabaseRequest(databaseRequest);
+	}
+
 }
