@@ -28,19 +28,21 @@ public class RequestHandler implements Runnable{
 
 	private final Thread t;
 	private volatile boolean shouldStop = false;
-//TODO : constants
+	//TODO : constants
 	private int bytesForMessageSize = 8;
 
 	private final LoginHandler loginHandler;
 	private final PatientHandler patientHandler;
-	
+	private final ExaminationHandler examinationHandler;
+
 	public RequestHandler(DataWriter dataWriter) throws SQLException {
 		this.dataWriter = dataWriter;
 		this.databaseThread = new DatabaseThread(this, "jdbc:oracle:thin:@localhost:1521/pdbmed", "medadmin", "test");
 
 		loginHandler = new LoginHandler(databaseThread.getDatabaseRequestTemplate());
 		patientHandler = new PatientHandler(databaseThread.getDatabaseRequestTemplate());
-		
+		examinationHandler = new ExaminationHandler(databaseThread.getDatabaseRequestTemplate());
+
 		this.t = new Thread(this);
 	}
 
@@ -76,7 +78,7 @@ public class RequestHandler implements Runnable{
 
 		clientBuffer.clear();
 		LOG.info("Request deserialized");
-		
+
 		synchronized(this.requestQueue) {
 			if(currentRequest != null){
 				requestQueue.offer(new RequestEntry(currentRequest, client));
@@ -96,7 +98,7 @@ public class RequestHandler implements Runnable{
 					dataWriter.processWriteRequest(
 							requestEntry.getClientSession(), 
 							requestEntry.getRequest());	
-				
+
 			} catch (InterruptedException e) {
 				LOG.severe("Request Handler thread interrupted");
 			}			  	 
@@ -109,16 +111,18 @@ public class RequestHandler implements Runnable{
 			loginHandler.handleRequest(client, request);			break;
 		case RequestCodes.PATIENT_TYPE_REQUEST:
 			patientHandler.handleRequest(client, request);			break;
-		}	
+		case RequestCodes.EXAMINATION_TYPE_REQUEST:
+			examinationHandler.handleRequest(client, request);		break;
+		}
 	}
 
 	public void addCompleteRequest(DatabaseRequest databaseRequest){
 		Request request = new Request(databaseRequest.getRequestCode(), databaseRequest.getResultSet());
 		request.setStatus(RequestStatus.REQUEST_PENDING);
-		
+
 		if(!databaseRequest.getProcedure().isSelectionRequest())
 			request.setDATA(databaseRequest.getAffectedRows());
-		
+
 		synchronized(this.requestQueue) {
 			requestQueue.offer(new RequestEntry(request, databaseRequest.getClientSession()));
 		}
