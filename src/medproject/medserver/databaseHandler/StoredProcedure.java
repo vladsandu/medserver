@@ -8,7 +8,9 @@ public enum StoredProcedure {
 	UpdatePatientAddress("{call updatePatientAddress(?,?,?,?,?,?)}", false), 
 	DeletePatient("{call deletePatient(?,?,?)}", false), 
 	UnregisterPatient("{call unregisterPatient(?,?,?)}", true),
-	RegisterPatient("{call registerPatient(?,?,?)}", true);
+	RegisterPatient("{call registerPatient(?,?,?)}", true),
+	DeceasedPatient("{call deceasedPatient(?,?,?)}", true), 
+	LoadExaminationList("{call loadExaminationList(?,?)}", true);
 
 	private StoredProcedure(String sql, boolean selectionRequest) {
 		this.sql = sql;

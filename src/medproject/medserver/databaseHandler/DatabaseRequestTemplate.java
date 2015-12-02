@@ -104,4 +104,21 @@ public class DatabaseRequestTemplate {
 		
 		makeDatabaseRequest(databaseRequest);
 	}
+
+	public void makeDeceasedPatientRequest(ClientSession session, int patientID) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.DECEASED_PATIENT_REQUEST, StoredProcedure.DeceasedPatient);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, patientID);
+		
+		makeDatabaseRequest(databaseRequest);	
+	}
+
+	public void makeExaminationListRequest(ClientSession session) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.EXAMINATION_LIST_REQUEST, StoredProcedure.LoadExaminationList);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		
+		makeDatabaseRequest(databaseRequest);		
+	}
 }
