@@ -34,6 +34,7 @@ public class RequestHandler implements Runnable{
 	private final LoginHandler loginHandler;
 	private final PatientHandler patientHandler;
 	private final ExaminationHandler examinationHandler;
+	private final DiagnosisHandler diagnosisHandler;
 
 	public RequestHandler(DataWriter dataWriter) throws SQLException {
 		this.dataWriter = dataWriter;
@@ -42,6 +43,7 @@ public class RequestHandler implements Runnable{
 		loginHandler = new LoginHandler(databaseThread.getDatabaseRequestTemplate());
 		patientHandler = new PatientHandler(databaseThread.getDatabaseRequestTemplate());
 		examinationHandler = new ExaminationHandler(databaseThread.getDatabaseRequestTemplate());
+		diagnosisHandler = new DiagnosisHandler(databaseThread.getDatabaseRequestTemplate());
 
 		this.t = new Thread(this);
 	}
@@ -113,6 +115,8 @@ public class RequestHandler implements Runnable{
 			patientHandler.handleRequest(client, request);			break;
 		case RequestCodes.EXAMINATION_TYPE_REQUEST:
 			examinationHandler.handleRequest(client, request);		break;
+		case RequestCodes.DIAGNOSIS_TYPE_REQUEST:
+			diagnosisHandler.handleRequest(client, request);		break;
 		}
 	}
 
