@@ -48,6 +48,8 @@ public class PatientHandler {
 			handleUnregisterPatientRequest(session, request); 				break;
 		case RequestCodes.REGISTER_PATIENT_REQUEST:
 			handleRegisterPatientRequest(session, request); 				break;
+		case RequestCodes.DECEASED_PATIENT_REQUEST:
+			handleDeceasedPatientRequest(session, request); 				break;
 
 		default: 															break;
 		}
@@ -125,6 +127,54 @@ public class PatientHandler {
 				} catch (SQLException e) {
 					request.setDATA(null);
 					request.setMessage("Patient unregistration failed.");
+					request.setStatus(RequestStatus.REQUEST_FAILED);
+				}
+			}
+		}
+
+	}
+
+
+	private void handleDeceasedPatientRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Invalid Data");
+			}
+			else
+				databaseRequestTemplate.makeDeceasedPatientRequest(session, (int)request.getDATA());
+
+		}//TODO: refactor into smaller methods
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			if(request.getDATA() != null){
+
+				try {
+					ResultSet results = (ResultSet) request.getDATA();
+					if(results.next()){
+						Date deceaseDate;
+
+						deceaseDate = results.getDate("data_deces");
+
+						request.setDATA(deceaseDate);
+
+						request.setMessage("Patient update successful");
+						request.setStatus(RequestStatus.REQUEST_COMPLETED);
+					}
+					else{
+						request.setDATA(null);
+						request.setMessage("Patient update failed.");
+						request.setStatus(RequestStatus.REQUEST_FAILED);
+					}
+				} catch (SQLException e) {
+					request.setDATA(null);
+					request.setMessage("Patient update failed.");
 					request.setStatus(RequestStatus.REQUEST_FAILED);
 				}
 			}
@@ -259,7 +309,7 @@ public class PatientHandler {
 					RegistrationRecord registrationRecord = new RegistrationRecord(
 							results.getDate("data_inscriere"), 
 							results.getDate("data_iesire"), 
-							results.getBoolean("inscris"));
+							results.getInt("inscris") == 1 ? true : false);
 
 					patient = new Patient(
 							results.getInt("pacient_id"),
@@ -394,7 +444,7 @@ public class PatientHandler {
 					RegistrationRecord registrationRecord = new RegistrationRecord(
 							results.getDate("data_inscriere"), 
 							results.getDate("data_iesire"), 
-							results.getBoolean("inscris"));
+							results.getInt("inscris") == 1 ? true : false);
 
 					Patient patient = new Patient(
 							results.getInt("pacient_id"),
