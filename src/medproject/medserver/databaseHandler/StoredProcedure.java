@@ -10,7 +10,12 @@ public enum StoredProcedure {
 	UnregisterPatient("{call unregisterPatient(?,?,?)}", true),
 	RegisterPatient("{call registerPatient(?,?,?)}", true),
 	DeceasedPatient("{call deceasedPatient(?,?,?)}", true), 
-	LoadExaminationList("{call loadExaminationList(?,?)}", true);
+	LoadExaminationList("{call loadExaminationList(?,?)}", true), 
+	LoadDiagnosisList("{call loadDiagnosisList(?,?)}", true), 
+	LoadPrescriptionList("{call loadPrescriptionList(?,?)}", true), 
+	LoadMedicationList("{call loadMedicationList(?,?)}", true), 
+	LoadDiagnosisInfoList("{call loadDiagnosisInfoList(?)}", true), 
+	LoadDrugList("{call loadDrugList(?)}", true);
 
 	private StoredProcedure(String sql, boolean selectionRequest) {
 		this.sql = sql;

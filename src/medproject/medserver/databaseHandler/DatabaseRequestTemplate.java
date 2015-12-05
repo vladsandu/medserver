@@ -121,4 +121,34 @@ public class DatabaseRequestTemplate {
 		
 		makeDatabaseRequest(databaseRequest);		
 	}
+
+	public void makeDiagnosisListRequest(ClientSession session) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.DIAGNOSIS_LIST_REQUEST, StoredProcedure.LoadDiagnosisList);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		
+		makeDatabaseRequest(databaseRequest);			
+	}
+	
+	public void makePrescriptionListRequest(ClientSession session) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.PRESCRIPTION_LIST_REQUEST, StoredProcedure.LoadPrescriptionList);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		
+		makeDatabaseRequest(databaseRequest);			
+	}
+
+	public void makeMedicationListRequest(ClientSession session) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.MEDICATION_LIST_REQUEST, StoredProcedure.LoadMedicationList);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		
+		makeDatabaseRequest(databaseRequest);				
+	}
+
+	public Connection getDatabaseConnection() {
+		return databaseConnection;
+	}
+
+
 }

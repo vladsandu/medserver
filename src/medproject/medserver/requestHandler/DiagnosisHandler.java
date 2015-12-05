@@ -1,5 +1,7 @@
 package medproject.medserver.requestHandler;
 
+import java.io.IOException;
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -9,12 +11,13 @@ import java.util.logging.Logger;
 import medproject.medlibrary.concurrency.Request;
 import medproject.medlibrary.concurrency.RequestCodes;
 import medproject.medlibrary.concurrency.RequestStatus;
-import medproject.medlibrary.examination.Diagnosis;
-import medproject.medlibrary.examination.Examination;
-import medproject.medlibrary.examination.ExaminationType;
+import medproject.medlibrary.diagnosis.Diagnosis;
+import medproject.medlibrary.diagnosis.DiagnosisInfo;
 import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
+import medproject.medserver.databaseHandler.StoredProcedure;
 import medproject.medserver.netHandler.ClientSession;
+import oracle.jdbc.internal.OracleTypes;
 
 public class DiagnosisHandler {
 
@@ -22,14 +25,63 @@ public class DiagnosisHandler {
 
 	private final DatabaseRequestTemplate databaseRequestTemplate;
 
+	private final List<DiagnosisInfo> diagnosisInfoList;
+
 	public DiagnosisHandler(DatabaseRequestTemplate databaseRequestTemplate) {
 		this.databaseRequestTemplate = databaseRequestTemplate;
+		this.diagnosisInfoList = new ArrayList<DiagnosisInfo>();
+		initializeDiagnosisInfoList();
 	}
 
 	public void handleRequest(ClientSession session, Request request){
 		switch(request.getREQUEST_CODE()){
 		case RequestCodes.DIAGNOSIS_LIST_REQUEST:
 			handleDiagnosisListRequest(session, request); break;
+		case RequestCodes.DIAGNOSIS_INFO_LIST_REQUEST:
+			handleDiagnosisInfoListRequest(session, request); break;
+		}
+	}
+
+	private void initializeDiagnosisInfoList(){
+		try {
+			CallableStatement statement = databaseRequestTemplate.getDatabaseConnection().prepareCall(
+					StoredProcedure.LoadDiagnosisInfoList.getSQL());
+
+			statement.registerOutParameter(1, OracleTypes.CURSOR);
+			statement.execute();
+			
+			ResultSet results = (ResultSet) statement.getObject(1);
+
+			while(results.next()){
+				DiagnosisInfo diagnosis = new DiagnosisInfo(
+						results.getInt("id"), 
+						results.getString("denumire")
+						);
+
+				diagnosisInfoList.add(diagnosis);
+			}
+
+			if(diagnosisInfoList.size() > 0)
+				LOG.fine("Diagnosis information loaded");
+			else
+				throw new IOException("List empty");
+			
+			results.close();
+		} catch (SQLException | IOException e) {
+			LOG.severe("DiagnosisList Error: " + e.getMessage());
+		}
+	}
+
+	private void handleDiagnosisInfoListRequest(ClientSession session, Request request) {
+		request.setDATA(diagnosisInfoList);
+		
+		if(diagnosisInfoList.size() > 0){
+			request.setMessage("Diagnosis information found.");
+			request.setStatus(RequestStatus.REQUEST_COMPLETED);
+		}
+		else{
+			request.setMessage("Diagnosis information missing.");
+			request.setStatus(RequestStatus.REQUEST_FAILED);
 		}
 	}
 
