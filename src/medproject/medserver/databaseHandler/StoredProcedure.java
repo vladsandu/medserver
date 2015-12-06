@@ -15,7 +15,8 @@ public enum StoredProcedure {
 	LoadPrescriptionList("{call loadPrescriptionList(?,?)}", true), 
 	LoadMedicationList("{call loadMedicationList(?,?)}", true), 
 	LoadDiagnosisInfoList("{call loadDiagnosisInfoList(?)}", true), 
-	LoadDrugList("{call loadDrugList(?)}", true);
+	LoadDrugList("{call loadDrugList(?)}", true), 
+	AddExamination("{call addExamination(?,?,?,?,?)}", true);
 
 	private StoredProcedure(String sql, boolean selectionRequest) {
 		this.sql = sql;

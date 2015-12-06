@@ -30,7 +30,49 @@ public class ExaminationHandler {
 		switch(request.getREQUEST_CODE()){
 		case RequestCodes.EXAMINATION_LIST_REQUEST:
 			handleExaminationListRequest(session, request); break;
+		case RequestCodes.ADD_EXAMINATION_REQUEST:
+			handleAddExaminationRequest(session, request); break;
 		}
+	}
+
+	private void handleAddExaminationRequest(ClientSession session, Request request) {
+		if(request.getStatus() == RequestStatus.REQUEST_NEW){
+			databaseRequestTemplate.makeAddExaminationRequest(session, (Examination) request.getDATA(), request.getPIN());
+		}
+		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
+			if(request.getDATA() == null){
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("The database couldn't process the request");
+				return;
+			}
+
+			ResultSet results = (ResultSet) request.getDATA();
+			
+			try {
+				if(results.next()){
+					Examination examination = new Examination(
+							results.getInt("id"), 
+							results.getInt("pacient_id"), 
+							results.getDate("data_consultatie"), 
+							results.getInt("diagnostic_id"),
+							results.getString("observatii"), 
+							ExaminationType.getExaminationTypeByInt(results.getInt("tip")));
+					
+					request.setDATA(examination);
+					request.setMessage("Examination added");
+					request.setStatus(RequestStatus.REQUEST_COMPLETED);
+				}
+				else{
+					throw new SQLException("Result set empty");
+				}
+			} catch (SQLException e) {
+				LOG.severe("Add Examination Error: " + e.getMessage());
+				request.setDATA(null);
+				request.setStatus(RequestStatus.REQUEST_FAILED);
+				request.setMessage("Database Exception Error");
+			}
+		}
+
 	}
 
 	private void handleExaminationListRequest(ClientSession session, Request request) {
@@ -55,7 +97,7 @@ public class ExaminationHandler {
 							results.getInt("id"), 
 							results.getInt("pacient_id"), 
 							results.getDate("data_consultatie"), 
-							null,
+							results.getInt("diagnostic_id"),
 							results.getString("observatii"), 
 							ExaminationType.getExaminationTypeByInt(results.getInt("tip")));
 
