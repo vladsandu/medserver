@@ -109,6 +109,7 @@ public class DiagnosisHandler {
 							results.getInt("catalog_diagnostic_id"), 
 							results.getString("observatii"), 
 							results.getBoolean("activ"), 
+							results.getDate("data_incepere"), 
 							results.getDate("data_terminare"));
 					diagnosisList.add(diagnosis);
 				}
