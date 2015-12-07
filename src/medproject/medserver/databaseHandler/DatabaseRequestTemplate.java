@@ -5,6 +5,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import medproject.medlibrary.account.LoginStructure;
 import medproject.medlibrary.concurrency.RequestCodes;
+import medproject.medlibrary.diagnosis.Diagnosis;
+import medproject.medlibrary.examination.Examination;
 import medproject.medlibrary.patient.Address;
 import medproject.medserver.netHandler.ClientSession;
 
@@ -146,9 +148,32 @@ public class DatabaseRequestTemplate {
 		makeDatabaseRequest(databaseRequest);				
 	}
 
+	public void makeAddExaminationRequest(ClientSession session, Examination data, int pin) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.ADD_EXAMINATION_REQUEST, StoredProcedure.AddExamination);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, data.getPatientID());
+		databaseRequest.addIntValue(4, pin);
+		databaseRequest.addIntValue(5, data.getExaminationType().getID());
+		
+		makeDatabaseRequest(databaseRequest);				
+	}
+	
+	public void makeAddDiagnosisRequest(ClientSession session, Diagnosis diagnosis, int pin) {
+		DatabaseRequest databaseRequest = new DatabaseRequest(
+				session, RequestCodes.ADD_DIAGNOSIS_REQUEST, StoredProcedure.AddDiagnosis);
+		databaseRequest.addIntValue(2, session.getOperator().getOperatorID());
+		databaseRequest.addIntValue(3, pin);
+		databaseRequest.addIntValue(4, diagnosis.getDiagnosisID());
+		databaseRequest.addIntValue(5, diagnosis.getExaminationID());
+		databaseRequest.addStringValue(6, diagnosis.getObservations());
+		databaseRequest.addIntValue(7, (diagnosis.isActive()) ? 1 : 0);
+		
+		makeDatabaseRequest(databaseRequest);					
+	}
+	
 	public Connection getDatabaseConnection() {
 		return databaseConnection;
 	}
-
 
 }
