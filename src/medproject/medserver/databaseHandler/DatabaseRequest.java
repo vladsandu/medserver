@@ -1,6 +1,7 @@
 package medproject.medserver.databaseHandler;
 
 import java.sql.Blob;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ public class DatabaseRequest {
 	private final Map<Integer,Integer> intValues = new HashMap<Integer, Integer>();
 	private final Map<Integer,String> stringValues = new HashMap<Integer, String>();
 	private final Map<Integer,Blob> blobValues = new HashMap<Integer, Blob>();
+	private final Map<Integer,Date> dateValues = new HashMap<Integer, Date>();
 	
 	private ResultSet resultSet = null;
 	private int affectedRows = 0;
@@ -58,6 +60,10 @@ public class DatabaseRequest {
 		blobValues.put(position, value);
 	}
 	
+	public void addDateValue(int position, Date value){
+		dateValues.put(position, value);
+	}
+	
 	public Map<Integer, Integer> getIntValues() {
 		return intValues;
 	}
@@ -69,8 +75,12 @@ public class DatabaseRequest {
 	public Map<Integer, Blob> getBlobValues() {
 		return blobValues;
 	}
-
 	
+	public Map<Integer, Date> getDateValues() {
+		return dateValues;
+	}
+
+
 	public StoredProcedure getProcedure() {
 		return procedure;
 	}
