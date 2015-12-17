@@ -99,7 +99,13 @@ public class RequestHandler implements Runnable{
 			RequestEntry requestEntry = null;
 			try {
 				requestEntry = requestQueue.take();
-				sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
+				
+				try {
+					sendRequestToSpecializedHandler(requestEntry.getClientSession(), requestEntry.getRequest());
+				} catch (SQLException e) {
+					makeRequestFailed(e, requestEntry.getRequest());
+				}
+				
 				if(requestEntry.getRequest().isCompleted())
 					dataWriter.processWriteRequest(
 							requestEntry.getClientSession(), 
@@ -110,8 +116,16 @@ public class RequestHandler implements Runnable{
 			}			  	 
 		}
 	}
+	
+	private void makeRequestFailed(SQLException e, Request request){
+		LOG.severe("Error: " + e.getMessage());
+		request.setDATA(null);
+		request.setStatus(RequestStatus.REQUEST_FAILED);
+		request.setMessage("Database Exception Error: " + e.getMessage());
 
-	private void sendRequestToSpecializedHandler(ClientSession client, Request request){
+	}
+
+	private void sendRequestToSpecializedHandler(ClientSession client, Request request) throws SQLException{
 		switch(RequestCodes.getRequestType(request)){
 		case RequestCodes.LOGIN_TYPE_REQUEST:
 			loginHandler.handleRequest(client, request);			break;

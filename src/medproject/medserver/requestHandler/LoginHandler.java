@@ -13,9 +13,7 @@ import medproject.medlibrary.logging.LogWriter;
 import medproject.medserver.databaseHandler.DatabaseRequestTemplate;
 import medproject.medserver.netHandler.ClientSession;
 
-public class LoginHandler {
-
-	private final Logger LOG = LogWriter.getLogger(this.getClass().getName());
+public class LoginHandler extends AbstractHandler{
 
 	private final DatabaseRequestTemplate databaseRequestTemplate;
 
@@ -23,7 +21,7 @@ public class LoginHandler {
 		this.databaseRequestTemplate = databaseRequestTemplate;
 	}
 
-	public void handleRequest(ClientSession session, Request request){
+	public void handleRequest(ClientSession session, Request request) throws SQLException{
 		switch(request.getREQUEST_CODE()){
 		case RequestCodes.LOGIN_REQUEST:
 			handleLoginRequest(session, request); 			break;
@@ -31,34 +29,30 @@ public class LoginHandler {
 		}
 	}
 
-	private void handleLoginRequest(ClientSession session, Request request){
+	private void handleLoginRequest(ClientSession session, Request request) throws SQLException{
+		if(verifyNullRequestData(request))
+			return;
+
 		if(request.getStatus() == RequestStatus.REQUEST_NEW){
 			LoginStructure loginStructure = (LoginStructure) request.getDATA();
-			
+
 			databaseRequestTemplate.makeLoginRequest(session, loginStructure);
 		}
 		else if(request.getStatus() == RequestStatus.REQUEST_PENDING){
 			ResultSet results = (ResultSet) request.getDATA();
 			request.setDATA(null);
-			
-			try {
-				if(results.next()){
-					session.setCertificateKey(results.getString("certificate_key"));
-					session.setOperator(new Operator(results.getInt("id"),
-													results.getString("username"),
-													results.getInt("type")));
-					request.setStatus(RequestStatus.REQUEST_COMPLETED);
-					request.setMessage("Login successful");
-				}
-				else{
-					request.setStatus(RequestStatus.REQUEST_FAILED);
-					request.setMessage("Your login information is incorrect");
-				}
-			
-			} catch (SQLException e) {
-				LOG.severe("Operator Login Error: " + e.getMessage());
+
+			if(results.next()){
+				session.setCertificateKey(results.getString("certificate_key"));
+				session.setOperator(new Operator(results.getInt("id"),
+						results.getString("username"),
+						results.getInt("type")));
+				request.setStatus(RequestStatus.REQUEST_COMPLETED);
+				request.setMessage("Login successful");
+			}
+			else{
 				request.setStatus(RequestStatus.REQUEST_FAILED);
-				request.setMessage("Database Exception Error");
+				request.setMessage("Your login information is incorrect");
 			}
 		}
 	}
